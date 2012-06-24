@@ -20,7 +20,7 @@
  * @package  Php-web-scraper
  * @author   colinschmidt <colinjschmidt@gmail.com>
  * @license  Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0
- * @link     https://github.com/colinschmidt/php-web-scraper
+ * @link     https://github.com/colinjschmidt/php-web-scraper
  * @filesource
  */
 
@@ -42,7 +42,7 @@ require_once 'simple_html_dom/simple_html_dom.php';
  * @copyright 2012 Colin Schmidt
  * @license   Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0
  * @version   Release: @package_version@
- * @link      https://github.com/colinschmidt/php-web-scraper
+ * @link      https://github.com/colinjschmidt/php-web-scraper
  * @abstract
  */
 abstract class Scraper
@@ -62,32 +62,18 @@ abstract class Scraper
     protected $url;
     
     /**
-     * The HTTP GET param for page number
+     * The number of results desired
      * 
-     * @var string
+     * @var int
      */
-    protected $pageParam = 'page';
+    protected $size = 100;
     
     /**
-     * The HTTP GET param for items per page
+     * The number of results obtained
      *
-     * @var string
-     */
-    protected $itemsPerPageParam = 'limit';
-    
-    /**
-     * The page number to scrape
-     * 
      * @var int
      */
-    protected $page = 1;
-    
-    /**
-     * The number of items per page
-     * 
-     * @var int
-     */
-    protected $itemsPerPage = 25;
+    protected $count = 0;
     
     /**
      * getResultsFolder Method
@@ -112,7 +98,7 @@ abstract class Scraper
      */
     protected function getFileName()
     {
-        $fileName = 'scraper-' . date('Y-m-d-h', time()) . '.txt';
+        $fileName = get_called_class() . '-' . date('Y-m-d-h', time()) . '.txt';
         
         return $fileName;
     }
@@ -125,12 +111,8 @@ abstract class Scraper
      * @return string The url to scrape
      */
     protected function getUrl()
-    {
-        $url = $this->url
-             . '?' . $this->pageParam . '=' . $this->page
-             . '&' . $this->itemsPerPageParam . '=' . $this->itemsPerPage;
-        
-        return $url;
+    {   
+        return null;
     }
     
     /**
@@ -152,22 +134,22 @@ abstract class Scraper
      *
      * Returns the URL of the next page of items to be scraped
      *
-     * @param string $html The HTML to retrieve the next page URL
+     * @param simple_html_dom $html The HTML to retrieve the next page URL
      *
      * @return string|NULL The next page url to scrape or NULL
      */
-    abstract protected function getNextPageUrl($html);
+    abstract protected function getNextPageUrl(simple_html_dom $html);
     
     /**
      * getItems Method
      *
      * Returns an array of simple_html_dom_node objects for each item
      *
-     * @param string $html The HTML to retrieve the next page URL
+     * @param simple_html_dom $html The HTML to retrieve the next page URL
      *
      * @return array|NULL An array of items or NULL
      */
-    abstract protected function getItems($html);
+    abstract protected function getItems(simple_html_dom $html);
     
     /**
      * getItemData Method
@@ -178,7 +160,7 @@ abstract class Scraper
      *
      * @return array|NULL An array of data for an item or NULL
      */
-    abstract protected function getItemData($item);
+    abstract protected function getItemData(simple_html_dom_node $item);
     
     /**
      * formatData Method
@@ -207,8 +189,10 @@ abstract class Scraper
     protected function appendData($file, $str)
     {   
         $handle = fopen($file, 'a');
-        fwrite($handle, $str . "\n");
+        fwrite($handle, $str);
         fclose($handle);
+        
+        return true;
     }
     
     /**
@@ -239,8 +223,18 @@ abstract class Scraper
         // Loop through all of the items,
         // formatting the data and appending to the string
         foreach ($items as $item) {
+            
+            // If we've obtained enough results, break
+            if ($this->count >= $this->size) {
+                break;
+            }
+            
+            // Otherwise get the item data and append to string
             $itemData = $this->getItemData($item);
-            $str .= $this->formatData($itemData);            
+            $str .= $this->formatData($itemData);
+            $str .= "\n";
+            
+            $this->count++;
         }
         
         // Construct the path to the file to save the results to
@@ -256,7 +250,10 @@ abstract class Scraper
         
         // If there is a next page and the last page's data was saved,
         // scrape the next page
-        if ($appended === true && !empty($nextPage)) {
+        if ($appended == true 
+            && !empty($nextPage) 
+            && $this->count < $this->size
+        ) {
             $this->run($nextPage);
         }
     }

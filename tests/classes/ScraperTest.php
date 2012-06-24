@@ -20,11 +20,10 @@
  * @package  Php-web-scraper
  * @author   colinschmidt <colinjschmidt@gmail.com>
  * @license  Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0
- * @link     https://github.com/colinschmidt/php-web-scraper
+ * @link     https://github.com/colinjschmidt/php-web-scraper
  * @filesource
  */
 
-require_once 'vfsStream/vfsStream.php';
 require_once __DIR__ . '/../../classes/Scraper.php';
 
 /**
@@ -34,7 +33,7 @@ require_once __DIR__ . '/../../classes/Scraper.php';
  * @package  Php-web-scraper
  * @author   colinschmidt <colinjschmidt@gmail.com>
  * @license  Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0
- * @link     https://github.com/colinschmidt/php-web-scraper
+ * @link     https://github.com/colinjschmidt/php-web-scraper
  */
 class ScraperTest extends PHPUnit_Framework_TestCase
 {
@@ -87,42 +86,12 @@ class ScraperTest extends PHPUnit_Framework_TestCase
         // Setup a mock object for Scraper class
         $mockController = $this->getMockForAbstractClass('Scraper');
         
-        // Define URL property
-        $urlProperty = $this->scraper->getProperty('url');
-        $urlProperty->setAccessible(true);
-        $urlProperty->setValue($mockController, 'http://google.com/search');
-        
-        // Get PageParam property value
-        $pageParamProperty = $this->scraper->getProperty('pageParam');
-        $pageParamProperty->setAccessible(true);
-        $pageParam = $pageParamProperty->getValue($mockController);
-        
-        // Get itemsPerPageParam property value
-        $itemsPerPageParamProperty = $this->scraper
-            ->getProperty('itemsPerPageParam');
-        $itemsPerPageParamProperty->setAccessible(true);
-        $itemsPerPageParam = $itemsPerPageParamProperty
-            ->getValue($mockController);
-        
-        // Get page property value
-        $pageProperty = $this->scraper->getProperty('page');
-        $pageProperty->setAccessible(true);
-        $page = $pageProperty->getValue($mockController);
-        
-        // Get itemsPerPage property value
-        $itemsPerPageProperty = $this->scraper->getProperty('itemsPerPage');
-        $itemsPerPageProperty->setAccessible(true);
-        $itemsPerPage = $itemsPerPageProperty->getValue($mockController);
-        
-        // Generate URL manually to compare with method output
-        $url = "$baseUrl?$pageParam=$page&$itemsPerPageParam=$itemsPerPage";
-        
         // Get the method and make it accessible
         $method = $this->scraper->getMethod('getUrl');
         $method->setAccessible(true);
         
         // Assert that the method responses matches the expected output
-        $this->assertEquals($url, $method->invoke($mockController));
+        $this->assertEquals(null, $method->invoke($mockController));
     }
     
     /**
@@ -254,16 +223,7 @@ class ScraperTest extends PHPUnit_Framework_TestCase
         $this->assertTrue(file_exists($fullPath));
         
         // Check that the output equals the expected
-        $this->assertEquals("test\n", file_get_contents($fullPath));       
-
-        // Run the appendData method again
-        $method->invokeArgs(
-            $mockController,
-            array($fullPath, 'test2')
-        );
-        
-        // Check that the output equals the expected
-        $this->assertEquals("test\ntest2\n", file_get_contents($fullPath));
+        $this->assertEquals("test", file_get_contents($fullPath));       
         
         unlink($fullPath);
     }
