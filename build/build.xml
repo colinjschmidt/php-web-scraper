@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="php-web-scraper" basedir="." default="build">
+    
+    <property file="build.properties" />
+    
+    <target name="build" depends="dist" />
+
+    <target name="clean" description="Cleanup build artifacts">
+        <delete dir="${base.results.dir}" />
+    </target>
+
+    <target name="prepare" depends="clean" description="prepare for build">
+        <mkdir dir="${base.results.dir}" />
+    </target>
+
+    <target name="dist" description="generate the distribution">
+        <mkdir dir="${dist.dir}" />
+        <!-- application directory gzip files -->
+        <tar destfile="${dist.dir}/${env.JOB_NAME}-${env.BUILD_NUMBER}.tar.gz" compression="gzip">
+            <tarfileset dir="${base.dir}/../..">
+                <include name="*/**" />
+                <exclude name="**/.git/**" />
+                <exclude name="**/.settings/**" />
+                <exclude name="${dist.build.dir}" />
+                <exclude name="${dist.tests.dir}" />
+            </tarfileset>
+        </tar>
+    </target>
+</project>    
+ 
+
