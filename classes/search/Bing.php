@@ -39,7 +39,6 @@ require_once __DIR__ . '/ScraperSearch.php';
  * @license   Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0
  * @version   Release: @package_version@
  * @link      https://github.com/colinjschmidt/php-web-scraper
- * @abstract
  */
 class Bing extends ScraperSearch
 {
